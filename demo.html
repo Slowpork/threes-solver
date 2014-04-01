@@ -1,0 +1,33 @@
+<html>
+<head>
+<script src="threes-solver-main.js" type="text/javascript"></script>
+<script type="text/javascript">
+  window.onload = function () {
+  var create_board = Module.cwrap('create_board', 'number', ['string']);
+  var print_board = Module.cwrap('print_board', 'number', ['number']);
+  var create_worker = Module.cwrap('create_worker', 'number', ['string']);
+  var get_next_move = function (wh, board, on_move) {
+
+  var new_on_move = function (player_move) {
+  return on_move(Pointer_stringify(player_move));
+  }
+
+  Module.ccall('get_next_move', 'number', ['number', 'number', 'number'],
+               [wh, board, Runtime.addFunction(new_on_move)]);
+  }
+
+  var board = create_board("0 0 0 0 1 1 1 768 2 2 2 2 3 3 3 3 r");
+  print_board(board);
+  var wh = create_worker("threes-solver-worker.js");
+  var on_move = function (player_move) {
+  console.log("player move", player_move);
+  };
+  get_next_move(wh, board, on_move);
+  };
+</script>
+</head>
+<body>
+<h1>threes-solver demo</h1>
+</div>
+</body>
+</html>
