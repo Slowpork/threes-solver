@@ -630,10 +630,10 @@ inner_alphabeta(F evaluator,
 
 template <class F>
 PlayerMove
-run_minimax(F evaluator, const Board & board) {
+run_minimax(F evaluator, const Board & board, unsigned level) {
   // we run a basic alpha-beta minimax
   // where the computer places the next card is considered it's move
-  auto ret = inner_alphabeta(evaluator, board, 4,
+  auto ret = inner_alphabeta(evaluator, board, level,
                              std::numeric_limits<board_score_t>::lowest(),
                              std::numeric_limits<board_score_t>::max());
   if (ret.death_guaranteed) {
@@ -672,9 +672,11 @@ extern "C" {
 
 void
 web_worker(char *data, size_t size) {
-  auto is = std::istringstream(std::string(data, data + size));
+  unsigned level;
+  std::memcpy(&level, data, sizeof(level));
+  auto is = std::istringstream(std::string(data + sizeof(level), data + size));
   auto board = read_board_from_human_input(is);
-  auto player_move = run_minimax(board_evaluator, board);
+  auto player_move = run_minimax(board_evaluator, board, level);
   char response_mut[sizeof(player_move)];
   memcpy(response_mut, &player_move, sizeof(player_move));
   emscripten_worker_respond(response_mut, sizeof(player_move));
@@ -734,11 +736,12 @@ void callback_js(char *data, int size, void *a) {
 }
 
 void
-get_next_move(worker_handle wh, void *board, my_cb_t cb) {
+get_next_move(worker_handle wh, void *board, my_cb_t cb, unsigned level) {
   char serialized_board[256];
-  auto actual_size = serialize_board(board, serialized_board, sizeof(serialized_board));
+  std::memcpy(serialized_board, &level, sizeof(level));
+  auto actual_size = serialize_board(board, serialized_board + sizeof(level), sizeof(serialized_board) - sizeof(level));
   emscripten_call_worker(wh, "web_worker",
-                         serialized_board, actual_size,
+                         serialized_board, actual_size + sizeof(level),
                          callback_js, (void *) cb);
 }
 
@@ -900,7 +903,7 @@ run_game(Board board, GameIO gio) {
       throw std::runtime_error("game over!");
     }
 
-    auto player_move = run_minimax(board_evaluator, board);
+    auto player_move = run_minimax(board_evaluator, board, 6);
 
     board.shift(player_move);
 
