@@ -611,10 +611,15 @@ inner_alphabeta(F evaluator,
     // the computer has no moves if and only if the player has no moves
     assert(computer_moved);
 
-    if (best_move == PlayerMove::UNKNOWN ||
-        new_beta > alpha) {
+    if (new_beta > alpha) {
       best_move = move;
       alpha = new_beta;
+    }
+    else if (best_move == PlayerMove::UNKNOWN) {
+      // this was still a valid move, it just
+      // wasn't any better than what we've already seen
+      // so no reason to update alpha
+      best_move = move;
     }
 
     if (beta <= alpha) break;
