@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -6,8 +7,9 @@
 #include <vector>
 #include <unordered_map>
 
-#include <cstdio>
+#include <cctype>
 #include <cassert>
+#include <cstdio>
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>
@@ -132,10 +134,54 @@ enum class NextColor {
   RED, BLUE, WHITE
 };
 
+std::string
+lower_string(std::string data) {
+  std::transform(data.begin(), data.end(), data.begin(), [] (const char & a) {
+      return std::tolower(a);});
+  return data;
+}
+
+std::string
+strip_string(std::string data) {
+  auto beginning_it = data.begin();
+  auto ending_it = data.end();
+
+  while (std::isspace(*beginning_it)) {
+    beginning_it++;
+  }
+
+  while (std::isspace(*(ending_it - 1))) {
+    ending_it--;
+  }
+
+  return std::string(beginning_it, ending_it);
+}
+
+NextColor
+human_string_to_next_color(std::string str) {
+  auto lowered_string = strip_string(lower_string(str));
+  if (str == "blue") return NextColor::BLUE;
+  if (str == "red") return NextColor::RED;
+  if (str == "white") return NextColor::WHITE;
+  throw std::runtime_error("invalid color");
+}
+
+std::string
+next_color_to_human_string(NextColor nc) {
+  switch (nc) {
+  case NextColor::BLUE: return "blue";
+  case NextColor::RED: return "red";
+  case NextColor::WHITE: return "white";
+  default: assert(false);
+  }
+}
+
 class Board {
+public:
   const static size_t BOARD_SIZE = 4;
   const static size_t BOARD_ELTS = BOARD_SIZE * BOARD_SIZE;
 
+private:
   Card board[BOARD_ELTS];
   NextColor nc;
 
@@ -202,9 +248,9 @@ private:
     }
 
     bool changed = false;
-    for (size_t i = 0; i < 3; ++i) {
+    for (size_t i = 0; i < Board::BOARD_SIZE - 1; ++i) {
       auto card_to_shift_pos = beam_start_pos;
-      for (size_t j = 0; j < 4; ++j) {
+      for (size_t j = 0; j < Board::BOARD_SIZE; ++j) {
         auto card_to_shift_onto_pos = card_to_shift_pos + shift_vector;
 
         if ((*this)[card_to_shift_pos] != nullcard &&
@@ -232,53 +278,6 @@ public:
       if ((*this)[cp.position] != nullcard) throw std::runtime_error("same card twice!");
       (*this)[cp.position] = cp.card;
     }
-  }
-
-  static
-  Board
-  from_bytestring(const char *data, size_t) {
-    std::vector<CardPlacement> cps;
-    for (size_t i = 0; i < BOARD_ELTS; ++i) {
-      uint32_t card_value;
-      memcpy(&card_value, data + sizeof(uint32_t) * i, sizeof(card_value));
-      if (!card_value) continue;
-      cps.push_back({card_value, {i % BOARD_SIZE, i / BOARD_SIZE}});
-    }
-
-    uint32_t nc;
-    memcpy(&nc, data + sizeof(uint32_t) * BOARD_ELTS, sizeof(nc));
-
-    NextColor next_color;
-    switch (nc) {
-    case 0: next_color = NextColor::BLUE; break;
-    case 1: next_color = NextColor::RED; break;
-    case 2: next_color = NextColor::WHITE; break;
-    default: throw std::runtime_error("BAD DATA");
-    }
-
-    return { cps, next_color };
-  }
-
-  std::pair<std::unique_ptr<char[]>, size_t>
-  to_bytestring() const {
-    auto ptr = std::unique_ptr<char[]>(new char[(BOARD_ELTS + 1) * sizeof(uint32_t)]);
-
-    for (size_t i = 0; i < BOARD_ELTS; ++i) {
-      auto s = (uint32_t) board[i].value();
-      memcpy(ptr.get() + sizeof(uint32_t) * i, &s, sizeof(s));
-    }
-
-    uint32_t ser_color;
-    switch (next_color()) {
-    case NextColor::BLUE: ser_color = 0; break;
-    case NextColor::RED: ser_color = 1; break;
-    case NextColor::WHITE: ser_color = 2; break;
-    default: assert(false);
-    }
-
-    memcpy(ptr.get() + sizeof(uint32_t) * BOARD_ELTS, &ser_color, sizeof(ser_color));
-
-    return { std::move(ptr), sizeof(uint32_t) * (BOARD_ELTS + 1) };
   }
 
   NextColor
@@ -469,15 +468,15 @@ compute_board_friction(const Board & board) {
   board_score_t board_friction = 0;
 
   // first sum up the horizontal frictions
-  for (unsigned x = 0; x < 3; ++x) {
-    for (unsigned y = 0; y < 4; ++y) {
+  for (unsigned x = 0; x < Board::BOARD_SIZE - 1; ++x) {
+    for (unsigned y = 0; y < Board::BOARD_SIZE; ++y) {
       board_friction += card_friction(board[{x, y}], board[{x + 1, y}]);
     }
   }
 
   // then the vertical friction
-  for (unsigned x = 0; x < 4; ++x) {
-    for (unsigned y = 0; y < 3; ++y) {
+  for (unsigned x = 0; x < Board::BOARD_SIZE; ++x) {
+    for (unsigned y = 0; y < Board::BOARD_SIZE - 1; ++y) {
       board_friction += card_friction(board[{x, y}], board[{x, y + 1}]);
     }
   }
@@ -537,7 +536,7 @@ possible_computer_card_placements_post_shift(const Board & board, PlayerMove pm)
   default: assert(false);
   }
 
-  for (int i = 0; i < 4; ++i, pos += vector) {
+  for (size_t i = 0; i < Board::BOARD_SIZE; ++i, pos += vector) {
     if (board[pos] != nullcard) continue;
 
     switch (board.next_color()) {
@@ -646,9 +645,15 @@ run_minimax(F evaluator, const Board & board) {
 
 Board
 read_board_from_human_input(std::istream & is) {
+  // first read next color
+  std::string next_color_str;
+  is >> next_color_str;
+  if (!is) throw std::runtime_error("input valid");
+  auto next_color = human_string_to_next_color(next_color_str);
+
   std::vector<CardPlacement> board_init;
-  for (unsigned j = 0; j < 4; ++j) {
-    for (unsigned i = 0; i < 4; ++i) {
+  for (unsigned j = 0; j < Board::BOARD_SIZE; ++j) {
+    for (unsigned i = 0; i < Board::BOARD_SIZE; ++i) {
       unsigned card_value;
       is >> card_value;
       if (!is) throw std::runtime_error("invalid card!");
@@ -656,19 +661,6 @@ read_board_from_human_input(std::istream & is) {
       Card c = card_value;
       board_init.push_back({c, {i, j}});
     }
-  }
-
-  // finally read next color
-  std::string nc;
-  is >> nc;
-  if (!is) throw std::runtime_error("input valid");
-
-  NextColor next_color;
-  switch (nc[0]) {
-  case 'r': next_color = NextColor::RED; break;
-  case 'b': next_color = NextColor::BLUE; break;
-  case 'w': next_color = NextColor::WHITE; break;
-  default: throw std::runtime_error("invalid color");
   }
 
   return { board_init, next_color };
@@ -680,7 +672,8 @@ extern "C" {
 
 void
 web_worker(char *data, size_t size) {
-  auto board = Board::from_bytestring(data, size);
+  auto is = std::istringstream(std::string(data, data + size));
+  auto board = read_board_from_human_input(is);
   auto player_move = run_minimax(board_evaluator, board);
   char response_mut[sizeof(player_move)];
   memcpy(response_mut, &player_move, sizeof(player_move));
@@ -688,16 +681,36 @@ web_worker(char *data, size_t size) {
 }
 
 void *
-create_board(char *textual_representation) {
-  auto is = std::istringstream(textual_representation);
-  auto board = read_board_from_human_input(is);
-  return (void *) new Board(board);
+create_board(const char *textual_representation) {
+  try {
+    auto is = std::istringstream(textual_representation);
+    auto board = read_board_from_human_input(is);
+    return (void *) new Board(board);
+  }
+  catch (...) {
+    return nullptr;
+  }
 }
 
-void
-print_board(void *b) {
-  auto board_p = (Board *) b;
-  board_p->print_board(std::cout);
+size_t
+serialize_board(void *board, char *str, size_t size) {
+  auto board_p = (const Board *) board;
+
+  std::ostringstream serialized;
+
+  serialized << next_color_to_human_string(board_p->next_color()) << " ";
+
+  for (size_t y = 0; y < Board::BOARD_SIZE; ++y) {
+    for (size_t x = 0; x < Board::BOARD_SIZE; ++x) {
+      serialized << (*board_p)[{x, y}].value() << " ";
+    }
+  }
+
+  auto ret_string = serialized.str();
+  auto to_copy = std::min(size, ret_string.size());
+  std::memmove(str, ret_string.data(), to_copy);
+
+  return to_copy;
 }
 
 void
@@ -722,12 +735,56 @@ void callback_js(char *data, int size, void *a) {
 
 void
 get_next_move(worker_handle wh, void *board, my_cb_t cb) {
-  auto board_p = (Board *) board;
-  auto ret = board_p->to_bytestring();
+  char serialized_board[256];
+  auto actual_size = serialize_board(board, serialized_board, sizeof(serialized_board));
   emscripten_call_worker(wh, "web_worker",
-                         (char *) ret.first.get(), ret.second,
+                         serialized_board, actual_size,
                          callback_js, (void *) cb);
 }
+
+PlayerMove
+player_move_from_string(std::string a) {
+  PlayerMove pm;
+  if (a == "SWIPE_UP") pm = PlayerMove::SWIPE_UP;
+  else if (a == "SWIPE_DOWN") pm = PlayerMove::SWIPE_DOWN;
+  else if (a == "SWIPE_LEFT") pm = PlayerMove::SWIPE_LEFT;
+  else if (a == "SWIPE_RIGHT") pm = PlayerMove::SWIPE_RIGHT;
+  else throw std::runtime_error("bad players move");
+  return pm;
+}
+
+int
+make_computers_move(void *board,
+                    const char *players_move,
+                    unsigned card_value, size_t card_position_x, size_t card_position_y,
+                    const char *human_readable_next_color) {
+  auto board_p = (Board *) board;
+  try {
+    auto pm = player_move_from_string(players_move);
+    auto next_color = human_string_to_next_color(human_readable_next_color);
+    board_p->computers_move(pm, {card_value, {card_position_x, card_position_y}},
+                            next_color);
+    return true;
+  }
+  catch (...) {
+    return false;
+  }
+}
+
+int
+shift_board(void *board,
+            const char *players_move) {
+  auto board_p = (Board *) board;
+  try {
+    auto pm = player_move_from_string(players_move);
+    board_p->shift(pm);
+    return true;
+  }
+  catch (...) {
+    return false;
+  }
+}
+
 
 }
 

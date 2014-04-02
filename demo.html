@@ -1,33 +1,151 @@
 <html>
-<head>
-<script src="threes-solver-main.js" type="text/javascript"></script>
-<script type="text/javascript">
-  window.onload = function () {
-  var create_board = Module.cwrap('create_board', 'number', ['string']);
-  var print_board = Module.cwrap('print_board', 'number', ['number']);
-  var create_worker = Module.cwrap('create_worker', 'number', ['string']);
-  var get_next_move = function (wh, board, on_move) {
-
-  var new_on_move = function (player_move) {
-  return on_move(Pointer_stringify(player_move));
-  }
-
-  Module.ccall('get_next_move', 'number', ['number', 'number', 'number'],
-               [wh, board, Runtime.addFunction(new_on_move)]);
-  }
-
-  var board = create_board("0 0 0 0 1 1 1 768 2 2 2 2 3 3 3 3 r");
-  print_board(board);
-  var wh = create_worker("threes-solver-worker.js");
-  var on_move = function (player_move) {
-  console.log("player move", player_move);
-  };
-  get_next_move(wh, board, on_move);
-  };
-</script>
-</head>
-<body>
-<h1>threes-solver demo</h1>
-</div>
-</body>
+  <head>
+    <script src="threes-solver-main.js" type="text/javascript"></script>
+    <script src="demo.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      window.onload = function () { demo.load(); }
+    </script>
+    <style type="text/css">
+      #command_view_header { 
+      font-size: 300%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>threes-solver demo</h1>
+    <div id="enter_initial_board">
+      <h2>Enter the initial board</h2>
+      <form id="initial_board_form">
+        <div>
+          Next Color?
+          <input type="radio" name="next_color" value="blue" id="blue_button"><label for="blue_button">Blue</label>
+          <input type="radio" name="next_color" value="red" id="red_button"><label for="red_button">Red</label>
+          <input type="radio" name="next_color" value="white" id="white_button"><label for="white_button">White</label>
+        </div>
+        <div>
+          Board Layout
+          <table>
+            <tr>
+              <td><input type="text" name="c0"></td>
+              <td><input type="text" name="c1"></td>
+              <td><input type="text" name="c2"></td>
+              <td><input type="text" name="c3"></td>
+            </tr>
+            <tr>
+              <td><input type="text" name="c4"></td>
+              <td><input type="text" name="c5"></td>
+              <td><input type="text" name="c6"></td>
+              <td><input type="text" name="c7"></td>
+            </tr>
+            <tr>
+              <td><input type="text" name="c8"></td>
+              <td><input type="text" name="c9"></td>
+              <td><input type="text" name="c10"></td>
+              <td><input type="text" name="c11"></td>
+            </tr>
+            <tr>
+              <td><input type="text" name="c12"></td>
+              <td><input type="text" name="c13"></td>
+              <td><input type="text" name="c14"></td>
+              <td><input type="text" name="c15"></td>
+            </tr>
+          </table>
+        </div>
+        <input type="submit">
+      </form>
+    </div>
+    <div id="command_view" style="display: none">
+      <p id="command_view_header">You should <strong><span id="move_to_make_cell"></span></strong>!</p>
+      <button id="command_ack" type="button">Okay I did it!</button>
+    </div>
+    <div id="game_view" style="display: none">
+      <div id="board_view">
+        <span id="board_title_cell"></span>
+        <table>
+          <tr>
+            <td colspan="4" ><div id="next_color_view">Next color: <span id="next_color_cell"></span></div></td>
+          </tr>
+          <tr>
+            <td id="c0_cell"></td>
+            <td id="c1_cell"></td>
+            <td id="c2_cell"></td>
+            <td id="c3_cell"></td>
+          </tr>
+          <tr>
+            <td id="c4_cell"></td>
+            <td id="c5_cell"></td>
+            <td id="c6_cell"></td>
+            <td id="c7_cell"></td>
+          </tr>
+          <tr>
+            <td id="c8_cell"></td>
+            <td id="c9_cell"></td>
+            <td id="c10_cell"></td>
+            <td id="c11_cell"></td>
+          </tr>
+          <tr>
+            <td id="c12_cell"></td>
+            <td id="c13_cell"></td>
+            <td id="c14_cell"></td>
+            <td id="c15_cell"></td>
+          </tr>
+        </table>
+      </div>
+      <div id="computing_next_move">
+        <p>Computing next move...</p>
+        <p><img src="spinner.gif" width="128"></p>
+      </div>
+      <div id="enter_computers_response">
+        <div>
+          <p>What changed after you did the swipe?</p>
+        </div>
+        <form id="enter_computers_response_form">
+          <div>
+            New Next Color:
+            <input type="radio" name="next_color" value="blue" id="blue_button_2"><label for="blue_button_2">Blue</label>
+            <input type="radio" name="next_color" value="red" id="red_button_2"><label for="red_button_2">Red</label>
+            <input type="radio" name="next_color" value="white" id="white_button_2"><label for="white_button_2">White</label>
+          </div>
+          <div>
+            New Card Location
+            <table>
+              <tr>
+                <td><input type="radio" name="card_location" value="0"></td>
+                <td><input type="radio" name="card_location" value="1"></td>
+                <td><input type="radio" name="card_location" value="2"></td>
+                <td><input type="radio" name="card_location" value="3"></td>
+              </tr>
+              <tr>
+                <td><input type="radio" name="card_location" value="4"></td>
+                <td><input type="radio" name="card_location" value="5"></td>
+                <td><input type="radio" name="card_location" value="6"></td>
+                <td><input type="radio" name="card_location" value="7"></td>
+              </tr>
+              <tr>
+                <td><input type="radio" name="card_location" value="8"></td>
+                <td><input type="radio" name="card_location" value="9"></td>
+                <td><input type="radio" name="card_location" value="10"></td>
+                <td><input type="radio" name="card_location" value="11"></td>
+              </tr>
+              <tr>
+                <td><input type="radio" name="card_location" value="12"></td>
+                <td><input type="radio" name="card_location" value="13"></td>
+                <td><input type="radio" name="card_location" value="14"></td>
+                <td><input type="radio" name="card_location" value="15"></td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            Value of new card:
+            <select name="card_value">
+            </select>
+          </div>
+          <input type="submit">
+        </form>
+      </div>
+    </div>
+    <p>
+      <a href="http://github.com/rianhunter/threes-solver">get the code</a>
+    </p>
+  </body>
 </html>
