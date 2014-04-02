@@ -15,8 +15,11 @@ demo.load = function () {
 
         fn_ptr = Runtime.addFunction(new_on_move);
 
-        Module.ccall('get_next_move', 'number', ['number', 'number', 'number'],
-                     [wh, board, fn_ptr]);
+        /* go deeper with firefox, it has a crazy fast js engine */
+        var level = navigator.userAgent.indexOf("Gecko/") != -1 ? 5 : 4;
+
+        Module.ccall('get_next_move', 'number', ['number', 'number', 'number', 'number'],
+                     [wh, board, fn_ptr, level]);
     };
     var serialize_board = function (board) {
         var BUF_SIZE = 256;
