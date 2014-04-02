@@ -820,6 +820,7 @@ struct ComputersResponse {
 };
 
 class PrintCurrentBoard {
+public:
   void
   current_board(const Board & board) {
     board.print_board(std::cout);
@@ -932,7 +933,7 @@ main(int argc, char *argv[]) {
     is = new std::ifstream(argv[1]);
   }
 
-  board = read_board_from_human_input(*is);
+  auto board = read_board_from_human_input(*is);
 
   //  run_game(board, ConsoleGameIO());
   run_game(board, VirtualGameIO());
