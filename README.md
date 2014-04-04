@@ -140,7 +140,7 @@ A basic heuristic is used in threes-solver. It's based on the observation that g
 where all adjacent cards are close in value usually lead to getting cards at least as high
 as 768.
 
-The heuristic computes a valid called "friction" for a board state. First let's define
+The heuristic computes a value called "friction" for a board state. First let's define
 a friction value for adjacent cards:
 
     friction(1, 1) = 2
