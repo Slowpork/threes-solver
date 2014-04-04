@@ -53,7 +53,7 @@ transition from one game state to another. Sometimes the relationship
 between two connected points is compared to a "parent" and "child," where
 the parent is the earlier game state in the relationship.
 
-<image>
+<img src="tree.jpg?raw=true" width="500">
 
 Each single line from a parent to a child represents one turn
 of the game. Each path down the tree represents one possible way the game
@@ -96,7 +96,7 @@ to find the maximum possible loss for each move and choose the minimum.
 The inverse works too: to find the maximum loss for a given game state,
 first find the minimum possible loss after each move and choose the maximum.
 
-<image of build up>
+<img src="minimax.png?raw=true" width="500">
 
 The reason for the alternating minimums and maximums is that each player
 is assuming the worst of the other but the best of themselves. In reality,
