@@ -101,7 +101,7 @@ first find the minimum possible loss after each move and choose the maximum.
 The reason for the alternating minimums and maximums is that each player
 is assuming the worst of the other but the best of themselves. In reality,
 the opposing player isn't ensuring your maximum loss but instead their minimum
-loss but because in a zero-sum game it's the same thing.
+loss. In a zero-sum game it's the same thing.
 
 One last thing, because Minimax is concerned with finding the minimum loss, it's
 a good fit for solving Threes since you really can't win. There is only losing.
