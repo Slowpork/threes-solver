@@ -201,7 +201,7 @@ Thanks
 ------
 
 Thanks goes to the people who created Threes, including
-[Asher Vollmer](http://asherv.com/threes/). It's clear they put a lot of time
+[Asher Vollmer](http://asherv.com/). It's clear they put a lot of time
 and effort into making it a lasting and fun puzzle game. It's a way better game than 2048.
 
 Copyright
