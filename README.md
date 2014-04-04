@@ -185,7 +185,7 @@ possible to get higher than 768. I think they did, in a way.
 I think they realized most people would mentally use a heuristic function similar
 to mine and purposefully designed the game so that you would need a more complex heuristic
 to reach higher values. I know
-of [people who have claimed to reach 6144](http://forums.toucharcdae.com/showthread.php?t=218248&page=42)
+of [people who have claimed to reach 6144](http://forums.toucharcade.com/showthread.php?t=218248&page=42)
 and they talk about the necessity of the computer playing the large pieces and keeping
 a "diagonal" formation (not the horizontal formation guided by my heuristic).
 
