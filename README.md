@@ -2,7 +2,7 @@ threes-solver
 =============
 
 threes-solver is an implementation of a very basic AI for the
-iPhone game [Threes](http://asherv.com/threes/).
+iPhone game [Threes](http://asherv.com/threes/). [Try it!](http://rianhunter.github.io/threes-solver/)
 
 Why did you do this?
 -----------------
