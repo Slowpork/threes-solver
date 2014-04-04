@@ -89,7 +89,7 @@ games, i.e. these are games where the amount you win is equal to the amount
 your opponent loses. In a zero-sum game minimizing your maximum loss
 is the same as maximizing your minimum win.
 
-Minimax gets it name because the algorithm is structured as as series of alternating
+Minimax gets it name because the algorithm is structured as a series of alternating
 minimum and maximum calls over game states as you traverse the game tree downward.
 The intuition is this: to find the minimum loss for a given game state, first you need
 to find the maximum possible loss for each move and choose the minimum.
