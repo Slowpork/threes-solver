@@ -95,6 +95,8 @@ The intuition is this: to find the minimum loss for a given game state, first yo
 to find the maximum possible loss for each move and choose the minimum.
 The inverse works too: to find the maximum loss for a given game state,
 first find the minimum possible loss after each move and choose the maximum.
+This picture illustrates an example of the algorithm in action, note that
+it starts with your opponent looking for the maximum loss.
 
 <img src="minimax.png?raw=true" width="500">
 
