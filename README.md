@@ -17,7 +17,7 @@ How does it work?
 -----------------
 
 threes-solver uses a basic algorithm to select a "move" when
-competing against another player. This algorithm is called [Minimax](http://en.wikipedia.com/Minimax)
+competing against another player. This algorithm is called [Minimax](http://en.wikipedia.com/wiki/Minimax)
 and is likely taught in every undergraduate CS program.
 
 For those of you learning (like me!), here's a introductory description
