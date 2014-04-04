@@ -127,7 +127,7 @@ break down. If it's a bad heuristic, you'll be computing the minimum maximum val
 a bad heuristic, which has no meaningful relation to winning or losing.
 
 Your heuristic is like a compass guiding you to victory. With a perfectly accurate heuristic
-you don't need large search depth. With the least accurate heuristic,
+you don't need a large search depth. With the least accurate heuristic,
 there is no search depth large enough that will ensure victory. That's unless your heurstic
 is good enough to at least distinguish end game states and the final tallies.
 
