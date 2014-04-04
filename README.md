@@ -168,7 +168,7 @@ in this heuristic:
     heuristic(board) = board_friction(board) / max_card_value(board)
 
 In other words we approximate that losing is proportional to board friction
-but inversely proportional to max_card_value. Is this right? Kind of, read
+but inversely proportional to the max card value. Is this right? Kind of, read
 the next section.
 
 Does it actually solve Threes?
